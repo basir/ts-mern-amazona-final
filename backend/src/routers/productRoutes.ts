@@ -10,8 +10,16 @@ const PAGE_SIZE = 3
 productRouter.get(
   '/',
   asyncHandler(async (req, res) => {
-    const products = await ProductModel.find()
-    res.send(products)
+    const latestProducts = await ProductModel.find({}, '-reviews')
+      .sort({ _id: -1 })
+      .limit(6)
+    const featuredProducts = await ProductModel.find(
+      {
+        isFeatured: true,
+      },
+      '_id name banner slug'
+    ).limit(3)
+    res.send({ latestProducts, featuredProducts })
   })
 )
 
@@ -218,6 +226,7 @@ productRouter.post(
         name: req.user.name,
         rating: Number(req.body.rating),
         comment: req.body.comment,
+        createdAt: new Date(),
       }
       product.reviews.push(review)
       product.numReviews = product.reviews.length

@@ -1,6 +1,6 @@
 import { modelOptions, prop, getModelForClass } from '@typegoose/typegoose'
 
-@modelOptions({ schemaOptions: { timestamps: true } })
+@modelOptions({})
 export class Review {
   @prop({ required: true })
   public name!: string
@@ -8,6 +8,8 @@ export class Review {
   public comment!: string
   @prop({ required: true })
   public rating!: number
+  @prop({ required: true, default: new Date() })
+  public createdAt!: Date
 }
 
 @modelOptions({ schemaOptions: { timestamps: true } })
@@ -37,6 +39,11 @@ export class Product {
   public numReviews!: number
   @prop()
   public reviews!: Review[]
+
+  @prop({ required: true, default: false })
+  public isFeatured!: boolean
+  @prop()
+  public banner?: string
 }
 
 export const ProductModel = getModelForClass(Product)

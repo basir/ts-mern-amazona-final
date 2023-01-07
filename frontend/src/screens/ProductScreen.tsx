@@ -132,10 +132,12 @@ function ProductScreen() {
       product!.numReviews = data.numReviews
       product!.rating = data.rating
       dispatch({ type: 'REFRESH_PRODUCT', payload: product! })
-      // window.scrollTo({
-      //   behavior: 'smooth',
-      //   top: reviewsRef.current.offsetTop,
-      // })
+      window.scrollTo({
+        behavior: 'smooth',
+        top: reviewsRef.current!.offsetTop,
+      })
+      setComment('')
+      setRating(0)
     } catch (err) {
       toast.error(getError(err as ApiError))
       dispatch({ type: 'CREATE_FAIL' })

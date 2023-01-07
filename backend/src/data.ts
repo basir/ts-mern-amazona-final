@@ -12,10 +12,14 @@ export const products: Product[] = [
     brand: 'Nike',
     price: 120,
     countInStock: 10,
-    rating: 4.5,
+    rating: 4,
     numReviews: 10,
-    reviews: [],
-    images: [],
+    reviews: [
+      { name: 'John', comment: 'good', rating: 4, createdAt: new Date() },
+    ],
+    images: ['../images/p11.jpg'],
+    isFeatured: true,
+    banner: '../images/b1.jpg',
   },
   {
     name: 'Adidas Fit Shirt',
@@ -30,6 +34,8 @@ export const products: Product[] = [
     description: 'high quality product',
     reviews: [],
     images: [],
+    isFeatured: true,
+    banner: '../images/b2.jpg',
   },
   {
     name: 'Lacoste Free Pants',
@@ -44,6 +50,7 @@ export const products: Product[] = [
     description: 'high quality product',
     reviews: [],
     images: [],
+    isFeatured: false,
   },
   {
     name: 'Nike Slim Pant',
@@ -58,6 +65,7 @@ export const products: Product[] = [
     description: 'high quality product',
     reviews: [],
     images: [],
+    isFeatured: false,
   },
 ]
 

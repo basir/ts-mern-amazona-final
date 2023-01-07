@@ -4,19 +4,29 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import ProductItem from '../components/ProductItem'
 import { Helmet } from 'react-helmet-async'
+import { Carousel } from 'react-responsive-carousel'
+import 'react-responsive-carousel/lib/styles/carousel.min.css'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
 import { Product } from '../types/Product'
 import { getError } from '../utils'
 import { ApiError } from '../types/ApiError'
+import { Link } from 'react-router-dom'
 
-type State = { products: Product[]; loading: boolean; error: string }
+type State = {
+  products: { featuredProducts: Product[]; latestProducts: Product[] }
+  loading: boolean
+  error: string
+}
 type Action =
   | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: Product[] }
+  | {
+      type: 'FETCH_SUCCESS'
+      payload: { featuredProducts: Product[]; latestProducts: Product[] }
+    }
   | { type: 'FETCH_FAIL'; payload: string }
 const initialState: State = {
-  products: [],
+  products: { featuredProducts: [], latestProducts: [] },
   loading: true,
   error: '',
 }
@@ -37,6 +47,7 @@ function HomeScreen() {
   const [{ loading, error, products }, dispatch] = useReducer<
     React.Reducer<State, Action>
   >(reducer, initialState)
+  const { featuredProducts, latestProducts } = products
   useEffect(() => {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' })
@@ -56,7 +67,17 @@ function HomeScreen() {
       <Helmet>
         <title>Amazona</title>
       </Helmet>
-      <h1>Featured Products</h1>
+      <Carousel showThumbs={false} autoPlay>
+        {featuredProducts.map((product) => (
+          <Link to={`/product/${product.slug}`} className="flex">
+            <div key={product._id}>
+              <img src={product.banner} alt={product.name} />
+            </div>
+          </Link>
+        ))}
+      </Carousel>
+
+      <h1>Latest Products</h1>
       <div className="products">
         {loading ? (
           <LoadingBox />
@@ -64,7 +85,7 @@ function HomeScreen() {
           <MessageBox variant="danger">{error}</MessageBox>
         ) : (
           <Row>
-            {products.map((product: Product) => (
+            {latestProducts.map((product: Product) => (
               <Col key={product.slug} sm={6} md={4} lg={3} className="mb-3">
                 <ProductItem product={product}></ProductItem>
               </Col>

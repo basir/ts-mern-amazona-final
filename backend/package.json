@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "TG_ALLOW_MIXED=ALLOW ts-node-dev --respawn --transpile-only --files src/index.ts",
+    "dev": "TG_ALLOW_MIXED=ALLOW ts-node-dev --respawn --transpile-only --files src/index.ts",
     "build": "tsc"
   },
   "keywords": [],
