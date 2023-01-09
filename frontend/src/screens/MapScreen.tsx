@@ -22,7 +22,7 @@ export default function MapScreen() {
 
   const getUserCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation os not supported by this browser')
+      toast.warn('Geolocation os not supported by this browser')
     } else {
       navigator.geolocation.getCurrentPosition((position) => {
         setCenter({

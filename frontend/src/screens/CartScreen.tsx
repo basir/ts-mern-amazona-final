@@ -10,6 +10,7 @@ import Card from 'react-bootstrap/Card'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { CartItem } from '../types/Cart'
+import { toast } from 'react-toastify'
 
 export default function CartScreen() {
   const navigate = useNavigate()
@@ -23,7 +24,7 @@ export default function CartScreen() {
   const updateCartHandler = async (item: CartItem, quantity: number) => {
     const { data } = await axios.get(`/api/products/${item._id}`)
     if (data.countInStock < quantity) {
-      window.alert('Sorry. Product is out of stock')
+      toast.warn('Sorry. Product is out of stock')
       return
     }
     ctxDispatch({

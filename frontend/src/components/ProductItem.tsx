@@ -8,6 +8,7 @@ import { Store } from '../Store'
 import { CartItem } from '../types/Cart'
 import { Product } from '../types/Product'
 import { convertProductToCartItem } from '../utils'
+import { toast } from 'react-toastify'
 
 function ProductItem({ product }: { product: Product }) {
   const { state, dispatch: ctxDispatch } = useContext(Store)
@@ -20,13 +21,14 @@ function ProductItem({ product }: { product: Product }) {
     const quantity = existItem ? existItem.quantity + 1 : 1
     const { data } = await axios.get(`/api/products/${item._id}`)
     if (data.countInStock < quantity) {
-      window.alert('Sorry. Product is out of stock')
+      toast.warn('Sorry. Product is out of stock')
       return
     }
     ctxDispatch({
       type: 'CART_ADD_ITEM',
       payload: { ...item, quantity },
     })
+    toast.success('Product added to the cart')
   }
 
   return (

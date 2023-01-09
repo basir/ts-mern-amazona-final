@@ -1,18 +1,19 @@
 export type Product = {
+  _id: string
+  name: string
+  image: string
   banner: string
   category: string
   brand: string
   description: string
-  reviews: any
-  _id: string
-  slug: number
-  image: string
+  reviews: Review[]
+  slug: string
   images: string[]
   rating: number
   numReviews: number
   price: number
   countInStock: number
-  name: string
+  isFeatured: boolean
 }
 export type Review = {
   _id: string
