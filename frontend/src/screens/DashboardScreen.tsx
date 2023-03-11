@@ -1,7 +1,4 @@
-import { useContext, useEffect, useReducer } from 'react'
 import Chart from 'react-google-charts'
-import axios from 'axios'
-import { Store } from '../Store'
 import { getError } from '../utils'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
@@ -9,65 +6,20 @@ import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Card from 'react-bootstrap/Card'
 import { ApiError } from '../types/ApiError'
+import { useGetOrderSummaryQuery } from '../hooks/orderHooks'
 
-type State = { summary: any; loading: boolean; error: string }
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: any }
-  | { type: 'FETCH_FAIL'; payload: string }
-const initialState: State = {
-  summary: {},
-  loading: true,
-  error: '',
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        summary: action.payload,
-        loading: false,
-      }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    default:
-      return state
-  }
-}
 export default function DashboardScreen() {
-  const [{ loading, summary, error }, dispatch] = useReducer(
-    reducer,
-    initialState
-  )
-  const { state } = useContext(Store)
-  const { userInfo } = state
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await axios.get('/api/orders/summary', {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        })
-        dispatch({ type: 'FETCH_SUCCESS', payload: data })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
-    }
-    fetchData()
-  }, [userInfo])
+  const { data: summary, isLoading, error } = useGetOrderSummaryQuery()
 
   return (
     <div>
       <h1>Dashboard</h1>
-      {loading ? (
+      {isLoading ? (
         <LoadingBox />
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
+      ) : !summary ? (
+        <MessageBox variant="danger">Summary not found</MessageBox>
       ) : (
         <>
           <Row>
@@ -87,7 +39,7 @@ export default function DashboardScreen() {
               <Card>
                 <Card.Body>
                   <Card.Title>
-                    {summary.orders && summary.users[0]
+                    {summary.orders && summary.orders[0]
                       ? summary.orders[0].numOrders
                       : 0}
                   </Card.Title>

@@ -1,4 +1,3 @@
-import Axios from 'axios'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Container from 'react-bootstrap/Container'
 import Form from 'react-bootstrap/Form'
@@ -9,6 +8,7 @@ import { Store } from '../Store'
 import { toast } from 'react-toastify'
 import { getError } from '../utils'
 import { ApiError } from '../types/ApiError'
+import { useSignupMutation } from '../hooks/userHooks'
 
 export default function SignupScreen() {
   const navigate = useNavigate()
@@ -23,6 +23,9 @@ export default function SignupScreen() {
 
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
+
+  const { mutateAsync: signup, isLoading } = useSignupMutation()
+
   const submitHandler = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
@@ -30,7 +33,7 @@ export default function SignupScreen() {
       return
     }
     try {
-      const { data } = await Axios.post('/api/users/signup', {
+      const data = await signup({
         name,
         email,
         password,

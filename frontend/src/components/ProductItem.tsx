@@ -2,7 +2,7 @@ import Card from 'react-bootstrap/Card'
 import Button from 'react-bootstrap/Button'
 import { Link } from 'react-router-dom'
 import Rating from './Rating'
-import axios from 'axios'
+
 import { useContext } from 'react'
 import { Store } from '../Store'
 import { CartItem } from '../types/Cart'
@@ -19,8 +19,7 @@ function ProductItem({ product }: { product: Product }) {
   const addToCartHandler = async (item: CartItem) => {
     const existItem = cartItems.find((x) => x._id === product._id)
     const quantity = existItem ? existItem.quantity + 1 : 1
-    const { data } = await axios.get(`/api/products/${item._id}`)
-    if (data.countInStock < quantity) {
+    if (product.countInStock < quantity) {
       toast.warn('Sorry. Product is out of stock')
       return
     }

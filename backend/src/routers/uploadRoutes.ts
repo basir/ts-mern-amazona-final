@@ -8,7 +8,7 @@ export const uploadRouter = express.Router()
 
 const upload = multer()
 uploadRouter.post(
-  '/',
+  '/cloudinary',
   isAuth,
   isAdmin,
   upload.single('image'),
@@ -41,17 +41,25 @@ uploadRouter.post(
 )
 
 // LOCAL UPLOAD
-// const storage = multer.diskStorage({
-//   destination(req, file, cb) {
-//     cb(null, 'uploads/');
-//   },
-//   filename(req, file, cb) {
-//     cb(null, `${Date.now()}.jpg`);
-//   },
-// });
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename(req, file, cb) {
+    cb(null, `${Date.now()}.jpg`)
+  },
+})
 
-// const upload = multer({ storage });
+const uploadLocal = multer({ storage })
 
-// uploadRouter.post('/', isAuth, upload.single('image'), (req, res) => {
-//   res.send({ image: `/${req.file.path}` });
-// });
+uploadRouter.post(
+  '/local',
+  isAuth,
+  uploadLocal.single('image'),
+  (req: Request, res: Response) => {
+    if (!req.file) throw Error('req.file is null')
+    res.send({
+      secure_url: `/${req.file.path}`,
+    })
+  }
+)

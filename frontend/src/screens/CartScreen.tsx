@@ -8,7 +8,7 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import Button from 'react-bootstrap/Button'
 import Card from 'react-bootstrap/Card'
 import { Link, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+
 import { CartItem } from '../types/Cart'
 import { toast } from 'react-toastify'
 
@@ -22,8 +22,7 @@ export default function CartScreen() {
   } = useContext(Store)
 
   const updateCartHandler = async (item: CartItem, quantity: number) => {
-    const { data } = await axios.get(`/api/products/${item._id}`)
-    if (data.countInStock < quantity) {
+    if (item.countInStock < quantity) {
       toast.warn('Sorry. Product is out of stock')
       return
     }

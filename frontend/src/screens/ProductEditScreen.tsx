@@ -1,8 +1,6 @@
-import React, { useContext, useEffect, useReducer, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import axios from 'axios'
-import { Store } from '../Store'
 import { getError } from '../utils'
 import Container from 'react-bootstrap/Container'
 import ListGroup from 'react-bootstrap/ListGroup'
@@ -11,153 +9,86 @@ import { Helmet } from 'react-helmet-async'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
 import Button from 'react-bootstrap/Button'
-import { Product } from '../types/Product'
 import { ApiError } from '../types/ApiError'
+import {
+  useGetProductDetailsQuery,
+  useUpdateProductMutation,
+  useUploadProductMutation,
+} from '../hooks/productHooks'
 
-type State = {
-  product?: Product
-  loading: boolean
-  error: string
-  loadingUpload: boolean
-  loadingUpdate: boolean
-}
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS' }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'UPDATE_REQUEST' }
-  | { type: 'UPDATE_SUCCESS' }
-  | { type: 'UPDATE_FAIL' }
-  | { type: 'UPLOAD_REQUEST' }
-  | { type: 'UPLOAD_SUCCESS' }
-  | { type: 'UPLOAD_FAIL' }
-const initialState: State = {
-  loading: true,
-  error: '',
-  loadingUpload: false,
-  loadingUpdate: false,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return { ...state, loading: false }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    case 'UPDATE_REQUEST':
-      return { ...state, loadingUpdate: true }
-    case 'UPDATE_SUCCESS':
-      return { ...state, loadingUpdate: false }
-    case 'UPDATE_FAIL':
-      return { ...state, loadingUpdate: false }
-    case 'UPLOAD_REQUEST':
-      return { ...state, loadingUpload: true }
-    case 'UPLOAD_SUCCESS':
-      return {
-        ...state,
-        loadingUpload: false,
-      }
-    case 'UPLOAD_FAIL':
-      return { ...state, loadingUpload: false }
-
-    default:
-      return state
-  }
-}
 export default function ProductEditScreen() {
   const navigate = useNavigate()
-  const params = useParams() // /product/:id
+  const params = useParams()
   const { id: productId } = params
-
-  const { state } = useContext(Store)
-  const { userInfo } = state
-  const [{ loading, error, loadingUpload, loadingUpdate }, dispatch] =
-    useReducer<React.Reducer<State, Action>>(reducer, initialState)
 
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
-  const [price, setPrice] = useState('')
+  const [price, setPrice] = useState(0)
   const [image, setImage] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [category, setCategory] = useState('')
-  const [countInStock, setCountInStock] = useState('')
+  const [countInStock, setCountInStock] = useState(0)
   const [brand, setBrand] = useState('')
   const [description, setDescription] = useState('')
 
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useGetProductDetailsQuery(productId!)
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' })
-        const { data } = await axios.get(`/api/products/${productId}`)
-        setName(data.name)
-        setSlug(data.slug)
-        setPrice(data.price)
-        setImage(data.image)
-        setImages(data.images)
-        setCategory(data.category)
-        setCountInStock(data.countInStock)
-        setBrand(data.brand)
-        setDescription(data.description)
-        dispatch({ type: 'FETCH_SUCCESS' })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
+    if (product) {
+      setName(product.name)
+      setSlug(product.slug)
+      setPrice(product.price)
+      setImage(product.image)
+      setImages(product.images)
+      setCategory(product.category)
+      setCountInStock(product.countInStock)
+      setBrand(product.brand)
+      setDescription(product.description)
     }
-    fetchData()
-  }, [productId])
+  }, [product])
+
+  const { mutateAsync: updateProduct, isLoading: loadingUpdate } =
+    useUpdateProductMutation()
 
   const submitHandler = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     try {
-      dispatch({ type: 'UPDATE_REQUEST' })
-      await axios.put(
-        `/api/products/${productId}`,
-        {
-          _id: productId,
-          name,
-          slug,
-          price,
-          image,
-          images,
-          category,
-          brand,
-          countInStock,
-          description,
-        },
-        {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        }
-      )
-      dispatch({
-        type: 'UPDATE_SUCCESS',
+      await updateProduct({
+        _id: productId!,
+        name,
+        slug,
+        price,
+        image,
+        images,
+        category,
+        brand,
+        countInStock,
+        description,
       })
       toast.success('Product updated successfully')
       navigate('/admin/products')
     } catch (err) {
       toast.error(getError(err as ApiError))
-      dispatch({ type: 'UPDATE_FAIL' })
     }
   }
+
+  const { mutateAsync: uploadProduct, isLoading: loadingUpload } =
+    useUploadProductMutation()
+
   const uploadFileHandler = async (
     e: React.FormEvent<HTMLInputElement>,
     forImages: boolean = false
   ) => {
     const file = e.currentTarget.files![0]
     const bodyFormData = new FormData()
-    bodyFormData.append('file', file)
+    bodyFormData.append('image', file)
+
     try {
-      dispatch({ type: 'UPLOAD_REQUEST' })
-      const { data } = await axios.post('/api/upload', bodyFormData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          authorization: `Bearer ${userInfo!.token}`,
-        },
-      })
-      dispatch({ type: 'UPLOAD_SUCCESS' })
+      const data = await uploadProduct(bodyFormData)
 
       if (forImages) {
         setImages([...images, data.secure_url])
@@ -167,9 +98,9 @@ export default function ProductEditScreen() {
       toast.success('Image uploaded successfully. click Update to apply it')
     } catch (err) {
       toast.error(getError(err as ApiError))
-      dispatch({ type: 'UPLOAD_FAIL' })
     }
   }
+
   const deleteFileHandler = async (fileName: string) => {
     setImages(images.filter((x) => x !== fileName))
     toast.success('Image removed successfully. click Update to apply it')
@@ -177,14 +108,14 @@ export default function ProductEditScreen() {
   return (
     <Container className="small-container">
       <Helmet>
-        <title>Edit Product ${productId}</title>
+        <title>Edit Product {productId}</title>
       </Helmet>
       <h1>Edit Product {productId}</h1>
 
-      {loading ? (
+      {isLoading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
       ) : (
         <Form onSubmit={submitHandler}>
           <Form.Group className="mb-3" controlId="name">
@@ -207,7 +138,7 @@ export default function ProductEditScreen() {
             <Form.Label>Price</Form.Label>
             <Form.Control
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => setPrice(Number(e.target.value))}
               required
             />
           </Form.Group>
@@ -270,7 +201,7 @@ export default function ProductEditScreen() {
             <Form.Label>Count In Stock</Form.Label>
             <Form.Control
               value={countInStock}
-              onChange={(e) => setCountInStock(e.target.value)}
+              onChange={(e) => setCountInStock(Number(e.target.value))}
               required
             />
           </Form.Group>

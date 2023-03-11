@@ -97,7 +97,7 @@ productRouter.get(
   isAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const { query } = req
-    const page = Number(query.page || 10)
+    const page = Number(query.page || 1)
     const pageSize = Number(query.pageSize) || PAGE_SIZE
 
     const products = await ProductModel.find()

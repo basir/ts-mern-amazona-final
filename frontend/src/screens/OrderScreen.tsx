@@ -1,5 +1,4 @@
-import axios from 'axios'
-import { useContext, useEffect, useReducer } from 'react'
+import { useContext, useEffect } from 'react'
 import {
   PayPalButtons,
   usePayPalScriptReducer,
@@ -7,7 +6,7 @@ import {
   PayPalButtonsComponentProps,
 } from '@paypal/react-paypal-js'
 import { Helmet } from 'react-helmet-async'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import Button from 'react-bootstrap/Button'
@@ -19,100 +18,45 @@ import MessageBox from '../components/MessageBox'
 import { Store } from '../Store'
 import { getError } from '../utils'
 import { toast } from 'react-toastify'
-import { Order } from '../types/Order'
 import { ApiError } from '../types/ApiError'
+import {
+  useDeliverOrderMutation,
+  useGetOrderDetailsQuery,
+  useGetPaypalClientIdQuery,
+  usePayOrderMutation,
+} from '../hooks/orderHooks'
 
-type State = {
-  order?: Order
-  loading: boolean
-  error: string
-  successDelete: boolean
-  loadingDelete: boolean
-  successPay: boolean
-  loadingPay: boolean
-  loadingDeliver: boolean
-  successDeliver: boolean
-}
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: Order }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'DELETE_REQUEST' }
-  | { type: 'DELETE_SUCCESS' }
-  | { type: 'DELETE_FAIL' }
-  | { type: 'DELETE_RESET' }
-  | { type: 'PAY_REQUEST' }
-  | { type: 'PAY_SUCCESS' }
-  | { type: 'PAY_FAIL' }
-  | { type: 'PAY_RESET' }
-  | { type: 'DELIVER_REQUEST' }
-  | { type: 'DELIVER_SUCCESS'; payload: any }
-  | { type: 'DELIVER_FAIL' }
-  | { type: 'DELIVER_RESET' }
-const initialState: State = {
-  loading: true,
-  error: '',
-  successDelete: false,
-  loadingDelete: false,
-  successPay: false,
-  loadingPay: false,
-  loadingDeliver: false,
-  successDeliver: false,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true, error: '' }
-    case 'FETCH_SUCCESS':
-      return { ...state, loading: false, order: action.payload, error: '' }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    case 'PAY_REQUEST':
-      return { ...state, loadingPay: true }
-    case 'PAY_SUCCESS':
-      return { ...state, loadingPay: false, successPay: true }
-    case 'PAY_FAIL':
-      return { ...state, loadingPay: false }
-    case 'PAY_RESET':
-      return { ...state, loadingPay: false, successPay: false }
-
-    case 'DELIVER_REQUEST':
-      return { ...state, loadingDeliver: true }
-    case 'DELIVER_SUCCESS':
-      return { ...state, loadingDeliver: false, successDeliver: true }
-    case 'DELIVER_FAIL':
-      return { ...state, loadingDeliver: false }
-    case 'DELIVER_RESET':
-      return {
-        ...state,
-        loadingDeliver: false,
-        successDeliver: false,
-      }
-    default:
-      return state
-  }
-}
 export default function OrderScreen() {
   const { state } = useContext(Store)
   const { userInfo } = state
 
   const params = useParams()
   const { id: orderId } = params
-  const navigate = useNavigate()
 
-  const [
-    {
-      loading,
-      error,
-      order,
-      successPay,
-      loadingPay,
-      loadingDeliver,
-      successDeliver,
-    },
-    dispatch,
-  ] = useReducer(reducer, initialState)
+  const {
+    data: order,
+    isLoading,
+    error,
+    refetch,
+  } = useGetOrderDetailsQuery(orderId!)
 
+  const { mutateAsync: deliverOrder, isLoading: loadingDeliver } =
+    useDeliverOrderMutation()
+  async function deliverOrderHandler() {
+    try {
+      await deliverOrder(orderId!)
+      refetch()
+      toast.success('Order is delivered')
+    } catch (err) {
+      toast.error(getError(err as ApiError))
+    }
+  }
+
+  const testPayHandler = () => {
+    payOrder({ orderId: orderId! })
+    refetch()
+    toast.success('Order is paid')
+  }
   const paypalbuttonTransactionProps: PayPalButtonsComponentProps = {
     style: { layout: 'vertical' },
     createOrder(data, actions) {
@@ -131,25 +75,12 @@ export default function OrderScreen() {
         })
     },
     onApprove(data, actions) {
-      /**
-       * data: {
-       *   orderID: string;
-       *   payerID: string;
-       *   paymentID: string | null;
-       *   billingToken: string | null;
-       *   facilitatorAccesstoken: string;
-       * }
-       */
       return actions.order!.capture().then(async (details) => {
         try {
-          dispatch({ type: 'PAY_REQUEST' })
-          await axios.put(`/api/orders/${order!._id}/pay`, details, {
-            headers: { authorization: `Bearer ${userInfo!.token}` },
-          })
-          dispatch({ type: 'PAY_SUCCESS' })
+          payOrder({ orderId: orderId!, ...details })
+          refetch()
           toast.success('Order is paid')
         } catch (err) {
-          dispatch({ type: 'PAY_FAIL' })
           toast.error(getError(err as ApiError))
         }
       })
@@ -158,53 +89,16 @@ export default function OrderScreen() {
       toast.error(getError(err as ApiError))
     },
   }
-
   const [{ isPending, isRejected }, paypalDispatch] = usePayPalScriptReducer()
-
-  function onError(err: any) {
-    toast.error(getError(err as ApiError))
-  }
+  const { data: paypalConfig } = useGetPaypalClientIdQuery()
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' })
-        const { data } = await axios.get(`/api/orders/${orderId}`, {
-          headers: { authorization: `Bearer ${userInfo!.token}` },
-        })
-        dispatch({ type: 'FETCH_SUCCESS', payload: data })
-      } catch (err) {
-        dispatch({ type: 'FETCH_FAIL', payload: getError(err as ApiError) })
-      }
-    }
-
-    if (!userInfo) {
-      return navigate('/login')
-    }
-    if (
-      !order ||
-      (order._id && order._id !== orderId) ||
-      successPay ||
-      successDeliver
-    ) {
-      fetchOrder()
-      if (successPay) {
-        dispatch({ type: 'PAY_RESET' })
-      }
-      if (successDeliver) {
-        dispatch({ type: 'DELIVER_RESET' })
-      }
-    } else {
+    if (paypalConfig && paypalConfig.clientId) {
       const loadPaypalScript = async () => {
-        const {
-          data: { clientId },
-        } = await axios.get('/api/keys/paypal', {
-          headers: { authorization: `Bearer ${userInfo.token}` },
-        })
         paypalDispatch({
           type: 'resetOptions',
           value: {
-            'client-id': clientId,
+            'client-id': paypalConfig!.clientId,
             currency: 'USD',
           },
         })
@@ -215,38 +109,13 @@ export default function OrderScreen() {
       }
       loadPaypalScript()
     }
-  }, [
-    order,
-    userInfo,
-    orderId,
-    navigate,
-    paypalDispatch,
-    successPay,
-    successDeliver,
-  ])
+  }, [paypalConfig])
+  const { mutateAsync: payOrder, isLoading: loadingPay } = usePayOrderMutation()
 
-  async function deliverOrderHandler() {
-    try {
-      dispatch({ type: 'DELIVER_REQUEST' })
-      const { data } = await axios.put(
-        `/api/orders/${order!._id}/deliver`,
-        {},
-        {
-          headers: { authorization: `Bearer ${userInfo!.token}` },
-        }
-      )
-      dispatch({ type: 'DELIVER_SUCCESS', payload: data })
-      toast.success('Order is delivered')
-    } catch (err) {
-      toast.error(getError(err as ApiError))
-      dispatch({ type: 'DELIVER_FAIL' })
-    }
-  }
-
-  return loading ? (
+  return isLoading ? (
     <LoadingBox></LoadingBox>
   ) : error ? (
-    <MessageBox variant="danger">{error}</MessageBox>
+    <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
   ) : order ? (
     <div>
       <Helmet>
@@ -371,6 +240,7 @@ export default function OrderScreen() {
                         <PayPalButtons
                           {...paypalbuttonTransactionProps}
                         ></PayPalButtons>
+                        <Button onClick={testPayHandler}>Test Pay</Button>
                       </div>
                     )}
                     {loadingPay && <LoadingBox></LoadingBox>}

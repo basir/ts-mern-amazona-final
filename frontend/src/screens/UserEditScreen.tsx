@@ -1,5 +1,4 @@
-import axios from 'axios'
-import React, { useContext, useEffect, useReducer, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import Container from 'react-bootstrap/Container'
@@ -8,61 +7,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
-import { Store } from '../Store'
 import { getError } from '../utils'
-import { User } from '../types/User'
 import { ApiError } from '../types/ApiError'
-
-type State = {
-  user?: User
-  loading: boolean
-  error: string
-  loadingUpload: boolean
-  loadingUpdate: boolean
-}
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS' }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'UPDATE_REQUEST' }
-  | { type: 'UPDATE_SUCCESS' }
-  | { type: 'UPDATE_FAIL' }
-  | { type: 'UPLOAD_REQUEST' }
-  | { type: 'UPLOAD_SUCCESS' }
-  | { type: 'UPLOAD_FAIL' }
-const initialState: State = {
-  loading: true,
-  error: '',
-  loadingUpload: false,
-  loadingUpdate: false,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return { ...state, loading: false }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    case 'UPDATE_REQUEST':
-      return { ...state, loadingUpdate: true }
-    case 'UPDATE_SUCCESS':
-      return { ...state, loadingUpdate: false }
-    case 'UPDATE_FAIL':
-      return { ...state, loadingUpdate: false }
-    default:
-      return state
-  }
-}
+import {
+  useGetUserDetailsQuery,
+  useUpdateUserMutation,
+} from '../hooks/userHooks'
 
 export default function UserEditScreen() {
-  const [{ loading, error, loadingUpdate }, dispatch] = useReducer<
-    React.Reducer<State, Action>
-  >(reducer, initialState)
-
-  const { state } = useContext(Store)
-  const { userInfo } = state
-
   const params = useParams()
   const { id: userId } = params
   const navigate = useNavigate()
@@ -71,48 +23,35 @@ export default function UserEditScreen() {
   const [email, setEmail] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
 
+  const { data: user, isLoading, error } = useGetUserDetailsQuery(userId!)
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' })
-        const { data } = await axios.get(`/api/users/${userId}`, {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        })
-        setName(data.name)
-        setEmail(data.email)
-        setIsAdmin(data.isAdmin)
-        dispatch({ type: 'FETCH_SUCCESS' })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
+    if (user) {
+      setName(user.name)
+      setEmail(user.email)
+      setIsAdmin(user.isAdmin)
     }
-    fetchData()
-  }, [userId, userInfo])
+  }, [user])
+
+  const { mutateAsync: updateUser, isLoading: loadingUpdate } =
+    useUpdateUserMutation()
 
   const submitHandler = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     try {
-      dispatch({ type: 'UPDATE_REQUEST' })
-      await axios.put(
-        `/api/users/${userId}`,
-        { _id: userId, name, email, isAdmin },
-        {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        }
-      )
-      dispatch({
-        type: 'UPDATE_SUCCESS',
+      await updateUser({
+        _id: userId!,
+        name,
+        email,
+        isAdmin,
       })
       toast.success('User updated successfully')
       navigate('/admin/users')
     } catch (err) {
       toast.error(getError(err as ApiError))
-      dispatch({ type: 'UPDATE_FAIL' })
     }
   }
+
   return (
     <Container className="small-container">
       <Helmet>
@@ -120,10 +59,10 @@ export default function UserEditScreen() {
       </Helmet>
       <h1>Edit User {userId}</h1>
 
-      {loading ? (
+      {isLoading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
       ) : (
         <Form onSubmit={submitHandler}>
           <Form.Group className="mb-3" controlId="name">

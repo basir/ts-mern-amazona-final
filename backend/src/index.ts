@@ -39,6 +39,8 @@ app.use('/api/products', productRouter)
 app.use('/api/orders', orderRouter)
 app.use('/api/keys', keyRouter)
 
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')))
+
 app.use(express.static(path.join(__dirname, '../../frontend/dist')))
 app.get('*', (req: Request, res: Response) =>
   res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'))

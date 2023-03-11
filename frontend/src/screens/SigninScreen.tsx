@@ -1,4 +1,3 @@
-import Axios from 'axios'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Container from 'react-bootstrap/Container'
 import Form from 'react-bootstrap/Form'
@@ -9,6 +8,8 @@ import { Store } from '../Store'
 import { toast } from 'react-toastify'
 import { getError } from '../utils'
 import { ApiError } from '../types/ApiError'
+import { useSigninMutation } from '../hooks/userHooks'
+import LoadingBox from '../components/LoadingBox'
 
 export default function SigninScreen() {
   const navigate = useNavigate()
@@ -21,10 +22,13 @@ export default function SigninScreen() {
 
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
+
+  const { mutateAsync: signin, isLoading } = useSigninMutation()
+
   const submitHandler = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     try {
-      const { data } = await Axios.post('/api/users/signin', {
+      const data = await signin({
         email,
         password,
       })
@@ -66,7 +70,10 @@ export default function SigninScreen() {
           />
         </Form.Group>
         <div className="mb-3">
-          <Button type="submit">Sign In</Button>
+          <Button disabled={isLoading} type="submit">
+            Sign In
+          </Button>
+          {isLoading && <LoadingBox />}
         </div>
         <div className="mb-3">
           New customer?{' '}

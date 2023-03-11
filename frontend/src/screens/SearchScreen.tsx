@@ -1,7 +1,4 @@
-import React, { useEffect, useReducer, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import axios from 'axios'
-import { toast } from 'react-toastify'
 import { getError } from '../utils'
 import { Helmet } from 'react-helmet-async'
 import Row from 'react-bootstrap/Row'
@@ -12,68 +9,11 @@ import MessageBox from '../components/MessageBox'
 import Button from 'react-bootstrap/Button'
 import ProductItem from '../components/ProductItem'
 import { LinkContainer } from 'react-router-bootstrap'
-import { Product } from '../types/Product'
 import { ApiError } from '../types/ApiError'
-
-type State = {
-  countProducts: number
-  products: Product[]
-  loading: boolean
-  error: string
-  pages: number
-  loadingCreate: boolean
-  loadingDelete: boolean
-  successDelete: boolean
-}
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | {
-      type: 'FETCH_SUCCESS'
-      payload: {
-        pages: number
-        page: number
-        products: []
-        countProducts: number
-      }
-    }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'CREATE_REQUEST' }
-  | { type: 'CREATE_SUCCESS' }
-  | { type: 'CREATE_FAIL' }
-  | { type: 'DELETE_REQUEST' }
-  | { type: 'DELETE_SUCCESS' }
-  | { type: 'DELETE_FAIL' }
-  | { type: 'DELETE_RESET' }
-const initialState: State = {
-  products: [],
-  loading: true,
-  error: '',
-  pages: 0,
-  loadingCreate: false,
-  loadingDelete: false,
-  successDelete: false,
-  countProducts: 0,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        products: action.payload.products,
-        page: action.payload.page,
-        pages: action.payload.pages,
-        countProducts: action.payload.countProducts,
-        loading: false,
-      }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-
-    default:
-      return state
-  }
-}
+import {
+  useGetCategoriesQuery,
+  useSearchProductsQuery,
+} from '../hooks/productHooks'
 
 const prices = [
   {
@@ -115,46 +55,28 @@ export const ratings = [
 export default function SearchScreen() {
   const navigate = useNavigate()
   const { search } = useLocation()
-  const sp = new URLSearchParams(search) // /search?category=Shirts
+  const sp = new URLSearchParams(search)
   const category = sp.get('category') || 'all'
   const query = sp.get('query') || 'all'
   const price = sp.get('price') || 'all'
   const rating = sp.get('rating') || 'all'
   const order = sp.get('order') || 'newest'
-  const page = sp.get('page') || 1
+  const page = Number(sp.get('page') || 1)
 
-  const [{ loading, error, products, pages, countProducts }, dispatch] =
-    useReducer<React.Reducer<State, Action>>(reducer, initialState)
+  const { data, isLoading, error } = useSearchProductsQuery({
+    category,
+    order,
+    page,
+    price,
+    query,
+    rating,
+  })
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data } = await axios.get(
-          `/api/products/search?page=${page}&query=${query}&category=${category}&price=${price}&rating=${rating}&order=${order}`
-        )
-        dispatch({ type: 'FETCH_SUCCESS', payload: data })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
-    }
-    fetchData()
-  }, [category, error, order, page, price, query, rating])
-
-  const [categories, setCategories] = useState([])
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get(`/api/products/categories`)
-        setCategories(data)
-      } catch (err) {
-        toast.error(getError(err as ApiError))
-      }
-    }
-    fetchCategories()
-  }, [dispatch])
+  const {
+    data: categories,
+    isLoading: loadingCategories,
+    error: errorCategories,
+  } = useGetCategoriesQuery()
 
   const getFilterUrl = (
     filter: {
@@ -195,16 +117,25 @@ export default function SearchScreen() {
                   Any
                 </Link>
               </li>
-              {categories.map((c) => (
-                <li key={c}>
-                  <Link
-                    className={c === category ? 'text-bold' : ''}
-                    to={getFilterUrl({ category: c })}
-                  >
-                    {c}
-                  </Link>
-                </li>
-              ))}
+
+              {loadingCategories ? (
+                <LoadingBox />
+              ) : error ? (
+                <MessageBox variant="danger">
+                  {getError(errorCategories as ApiError)}
+                </MessageBox>
+              ) : (
+                categories!.map((c) => (
+                  <li key={c}>
+                    <Link
+                      className={c === category ? 'text-bold' : ''}
+                      to={getFilterUrl({ category: c })}
+                    >
+                      {c}
+                    </Link>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
           <div>
@@ -255,16 +186,19 @@ export default function SearchScreen() {
           </div>
         </Col>
         <Col md={9}>
-          {loading ? (
+          {isLoading ? (
             <LoadingBox></LoadingBox>
           ) : error ? (
-            <MessageBox variant="danger">{error}</MessageBox>
+            <MessageBox variant="danger">
+              {getError(error as ApiError)}
+            </MessageBox>
           ) : (
             <>
               <Row className="justify-content-between mb-3">
                 <Col md={6}>
                   <div>
-                    {countProducts === 0 ? 'No' : countProducts} Results
+                    {data!.countProducts === 0 ? 'No' : data!.countProducts}{' '}
+                    Results
                     {query !== 'all' && ' : ' + query}
                     {category !== 'all' && ' : ' + category}
                     {price !== 'all' && ' : Price ' + price}
@@ -297,12 +231,12 @@ export default function SearchScreen() {
                   </select>
                 </Col>
               </Row>
-              {products.length === 0 && (
+              {data!.products.length === 0 && (
                 <MessageBox>No Product Found</MessageBox>
               )}
 
               <Row>
-                {products.map((product) => (
+                {data!.products.map((product) => (
                   <Col sm={6} lg={4} className="mb-3" key={product._id}>
                     <ProductItem product={product}></ProductItem>
                   </Col>
@@ -310,7 +244,7 @@ export default function SearchScreen() {
               </Row>
 
               <div>
-                {[...Array(pages).keys()].map((x) => (
+                {[...Array(data!.pages).keys()].map((x) => (
                   <LinkContainer
                     key={x + 1}
                     className="mx-1"

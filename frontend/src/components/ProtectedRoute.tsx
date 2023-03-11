@@ -1,14 +1,15 @@
-import { Navigate } from 'react-router-dom'
-import { ProtectedRouteProps } from '../types/ProtectedRouteProps'
+import { useContext } from 'react'
+import { Navigate, Outlet } from 'react-router-dom'
+import { Store } from '../Store'
 
-export default function ProtectedRoute({
-  isAuthenticated,
-  authenticationPath,
-  outlet,
-}: ProtectedRouteProps) {
-  if (isAuthenticated) {
-    return outlet
+export default function ProtectedRoute() {
+  const {
+    state: { userInfo },
+  } = useContext(Store)
+
+  if (userInfo) {
+    return <Outlet />
   } else {
-    return <Navigate to={{ pathname: authenticationPath }} />
+    return <Navigate to="/login" />
   }
 }

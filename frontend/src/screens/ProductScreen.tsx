@@ -1,11 +1,4 @@
-import axios from 'axios'
-import React, {
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
@@ -22,48 +15,12 @@ import { convertProductToCartItem, getError } from '../utils'
 import { Store } from '../Store'
 import FloatingLabel from 'react-bootstrap/FloatingLabel'
 import { toast } from 'react-toastify'
-import { Product, Review } from '../types/Product'
+import { Review } from '../types/Product'
 import { ApiError } from '../types/ApiError'
-
-type State = {
-  product?: Product
-  loading: boolean
-  error: string
-  loadingCreateReview: boolean
-}
-type Action =
-  | { type: 'REFRESH_PRODUCT'; payload: Product }
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: Product }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'CREATE_REQUEST' }
-  | { type: 'CREATE_SUCCESS' }
-  | { type: 'CREATE_FAIL' }
-const initialState: State = {
-  loading: true,
-  error: '',
-  loadingCreateReview: false,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'REFRESH_PRODUCT':
-      return { ...state, product: action.payload }
-    case 'CREATE_REQUEST':
-      return { ...state, loadingCreateReview: true }
-    case 'CREATE_SUCCESS':
-      return { ...state, loadingCreateReview: false }
-    case 'CREATE_FAIL':
-      return { ...state, loadingCreateReview: false }
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return { ...state, product: action.payload, loading: false }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    default:
-      return state
-  }
-}
+import {
+  useCreateReviewMutation,
+  useGetProductDetailsBySlugQuery,
+} from '../hooks/productHooks'
 
 function ProductScreen() {
   const reviewsRef = useRef<HTMLDivElement>(null)
@@ -76,29 +33,23 @@ function ProductScreen() {
   const params = useParams()
   const { slug } = params
 
-  const [{ loading, error, product, loadingCreateReview }, dispatch] =
-    useReducer<React.Reducer<State, Action>>(reducer, initialState)
+  const {
+    data: product,
+    refetch,
+    isLoading,
+    error,
+  } = useGetProductDetailsBySlugQuery(slug!)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      dispatch({ type: 'FETCH_REQUEST' })
-      try {
-        const result = await axios.get(`/api/products/slug/${slug}`)
-        dispatch({ type: 'FETCH_SUCCESS', payload: result.data })
-      } catch (err) {
-        dispatch({ type: 'FETCH_FAIL', payload: getError(err as ApiError) })
-      }
-    }
-    fetchData()
-  }, [slug])
+  const { mutateAsync: createReview, isLoading: loadingCreateReview } =
+    useCreateReviewMutation()
 
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { cart, userInfo } = state
+
   const addToCartHandler = async () => {
     const existItem = cart.cartItems.find((x) => x._id === product!._id)
     const quantity = existItem ? existItem.quantity + 1 : 1
-    const { data } = await axios.get(`/api/products/${product!._id}`)
-    if (data.countInStock < quantity) {
+    if (product!.countInStock < quantity) {
       toast.warn('Sorry. Product is out of stock')
       return
     }
@@ -116,22 +67,14 @@ function ProductScreen() {
       return
     }
     try {
-      const { data } = await axios.post(
-        `/api/products/${product!._id}/reviews`,
-        { rating, comment, name: userInfo!.name },
-        {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        }
-      )
-
-      dispatch({
-        type: 'CREATE_SUCCESS',
+      await createReview({
+        productId: product!._id,
+        rating,
+        comment,
+        name: userInfo!.name,
       })
+      refetch()
       toast.success('Review submitted successfully')
-      product!.reviews.unshift(data.review)
-      product!.numReviews = data.numReviews
-      product!.rating = data.rating
-      dispatch({ type: 'REFRESH_PRODUCT', payload: product! })
       window.scrollTo({
         behavior: 'smooth',
         top: reviewsRef.current!.offsetTop,
@@ -140,13 +83,12 @@ function ProductScreen() {
       setRating(0)
     } catch (err) {
       toast.error(getError(err as ApiError))
-      dispatch({ type: 'CREATE_FAIL' })
     }
   }
-  return loading ? (
+  return isLoading ? (
     <LoadingBox />
   ) : error ? (
-    <MessageBox variant="danger">{error}</MessageBox>
+    <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
   ) : product ? (
     <div>
       <Row>
@@ -242,7 +184,7 @@ function ProductScreen() {
         </div>
         <ListGroup>
           {product.reviews.map((review: Review) => (
-            <ListGroup.Item key={review._id}>
+            <ListGroup.Item key={review.createdAt}>
               <strong>{review.name}</strong>
               <Rating rating={review.rating} numReviews={0} caption=""></Rating>
               <p>{review.createdAt.substring(0, 10)}</p>

@@ -1,65 +1,16 @@
-import React, { useContext, useEffect, useReducer } from 'react'
 import { Helmet } from 'react-helmet-async'
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
-import { Store } from '../Store'
+import Button from 'react-bootstrap/Button'
+import { useGetOrderHistoryQuery } from '../hooks/orderHooks'
 import { getError } from '../utils'
-import Button from 'react-bootstrap/esm/Button'
 import { ApiError } from '../types/ApiError'
-import { Order } from '../types/Order'
-
-type State = { orders: Order[]; loading: boolean; error: string }
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: Order[] }
-  | { type: 'FETCH_FAIL'; payload: string }
-const initialState: State = {
-  orders: [],
-  loading: true,
-  error: '',
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return { ...state, orders: action.payload, loading: false }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    default:
-      return state
-  }
-}
 
 export default function OrderHistoryScreen() {
-  const { state } = useContext(Store)
-  const { userInfo } = state
   const navigate = useNavigate()
-  const [{ loading, error, orders }, dispatch] = useReducer<
-    React.Reducer<State, Action>
-  >(reducer, initialState)
+  const { data: orders, isLoading, error } = useGetOrderHistoryQuery()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      dispatch({ type: 'FETCH_REQUEST' })
-      try {
-        const { data } = await axios.get(
-          `/api/orders/mine`,
-
-          { headers: { Authorization: `Bearer ${userInfo!.token}` } }
-        )
-        dispatch({ type: 'FETCH_SUCCESS', payload: data })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
-    }
-    fetchData()
-  }, [userInfo])
   return (
     <div>
       <Helmet>
@@ -67,10 +18,10 @@ export default function OrderHistoryScreen() {
       </Helmet>
 
       <h1>Order History</h1>
-      {loading ? (
+      {isLoading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
       ) : (
         <table className="table">
           <thead>
@@ -84,7 +35,7 @@ export default function OrderHistoryScreen() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {orders!.map((order) => (
               <tr key={order._id}>
                 <td>{order._id}</td>
                 <td>{order.createdAt.substring(0, 10)}</td>

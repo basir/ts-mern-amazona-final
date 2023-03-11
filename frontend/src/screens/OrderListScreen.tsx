@@ -1,109 +1,29 @@
-import axios from 'axios'
-import React, { useContext, useEffect, useReducer } from 'react'
 import { toast } from 'react-toastify'
 import Button from 'react-bootstrap/Button'
 import { Helmet } from 'react-helmet-async'
 import { useNavigate } from 'react-router-dom'
 import LoadingBox from '../components/LoadingBox'
 import MessageBox from '../components/MessageBox'
-import { Store } from '../Store'
 import { getError } from '../utils'
-import { Order } from '../types/Order'
 import { ApiError } from '../types/ApiError'
+import { useDeleteOrderMutation, useGetOrdersQuery } from '../hooks/orderHooks'
 
-type State = {
-  orders: Order[]
-  loading: boolean
-  error: string
-  successDelete: boolean
-  loadingDelete: boolean
-}
-type Action =
-  | { type: 'FETCH_REQUEST' }
-  | { type: 'FETCH_SUCCESS'; payload: Order[] }
-  | { type: 'FETCH_FAIL'; payload: string }
-  | { type: 'DELETE_REQUEST' }
-  | { type: 'DELETE_SUCCESS' }
-  | { type: 'DELETE_FAIL' }
-  | { type: 'DELETE_RESET' }
-const initialState: State = {
-  orders: [],
-  loading: true,
-  error: '',
-  successDelete: false,
-  loadingDelete: false,
-}
-const reducer = (state: State, action: Action) => {
-  switch (action.type) {
-    case 'FETCH_REQUEST':
-      return { ...state, loading: true }
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        orders: action.payload,
-        loading: false,
-      }
-    case 'FETCH_FAIL':
-      return { ...state, loading: false, error: action.payload }
-    case 'DELETE_REQUEST':
-      return { ...state, loadingDelete: true, successDelete: false }
-    case 'DELETE_SUCCESS':
-      return {
-        ...state,
-        loadingDelete: false,
-        successDelete: true,
-      }
-    case 'DELETE_FAIL':
-      return { ...state, loadingDelete: false }
-    case 'DELETE_RESET':
-      return { ...state, loadingDelete: false, successDelete: false }
-    default:
-      return state
-  }
-}
 export default function OrderListScreen() {
   const navigate = useNavigate()
-  const { state } = useContext(Store)
-  const { userInfo } = state
-  const [{ loading, error, orders, successDelete, loadingDelete }, dispatch] =
-    useReducer<React.Reducer<State, Action>>(reducer, initialState)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        dispatch({ type: 'FETCH_REQUEST' })
-        const { data } = await axios.get(`/api/orders`, {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        })
-        dispatch({ type: 'FETCH_SUCCESS', payload: data })
-      } catch (err) {
-        dispatch({
-          type: 'FETCH_FAIL',
-          payload: getError(err as ApiError),
-        })
-      }
-    }
-    if (successDelete) {
-      dispatch({ type: 'DELETE_RESET' })
-    } else {
-      fetchData()
-    }
-  }, [userInfo, successDelete])
+  const { data: orders, isLoading, error, refetch } = useGetOrdersQuery()
 
-  const deleteHandler = async (order: Order) => {
+  const { mutateAsync: deleteOrder, isLoading: loadingDelete } =
+    useDeleteOrderMutation()
+
+  const deleteHandler = async (id: string) => {
     if (window.confirm('Are you sure to delete?')) {
       try {
-        dispatch({ type: 'DELETE_REQUEST' })
-        await axios.delete(`/api/orders/${order._id}`, {
-          headers: { Authorization: `Bearer ${userInfo!.token}` },
-        })
-        toast.success('order deleted successfully')
-        dispatch({ type: 'DELETE_SUCCESS' })
+        deleteOrder(id)
+        refetch()
+        toast.success('Order deleted successfully')
       } catch (err) {
         toast.error(getError(err as ApiError))
-        dispatch({
-          type: 'DELETE_FAIL',
-        })
       }
     }
   }
@@ -115,10 +35,10 @@ export default function OrderListScreen() {
       </Helmet>
       <h1>Orders</h1>
       {loadingDelete && <LoadingBox></LoadingBox>}
-      {loading ? (
+      {isLoading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
-        <MessageBox variant="danger">{error}</MessageBox>
+        <MessageBox variant="danger">{getError(error as ApiError)}</MessageBox>
       ) : (
         <table className="table">
           <thead>
@@ -133,7 +53,7 @@ export default function OrderListScreen() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {orders!.map((order) => (
               <tr key={order._id}>
                 <td>{order._id}</td>
                 <td>{order.user ? order.user.name : 'DELETED USER'}</td>
@@ -160,7 +80,7 @@ export default function OrderListScreen() {
                   <Button
                     type="button"
                     variant="light"
-                    onClick={() => deleteHandler(order)}
+                    onClick={() => deleteHandler(order._id)}
                   >
                     Delete
                   </Button>
