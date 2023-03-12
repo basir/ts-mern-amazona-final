@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button'
 import CheckoutSteps from '../components/CheckoutSteps'
 import { Store } from '../Store'
 
-export default function PaymentMethodScreen() {
+export default function PaymentMethodPage() {
   const navigate = useNavigate()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const {

@@ -16,7 +16,7 @@ import {
   useUploadProductMutation,
 } from '../hooks/productHooks'
 
-export default function ProductEditScreen() {
+export default function ProductEditPage() {
   const navigate = useNavigate()
   const params = useParams()
   const { id: productId } = params

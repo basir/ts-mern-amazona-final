@@ -82,7 +82,7 @@ $ npm start
    1. create Rating component
    2. Create Product component
    3. Use Rating component in Product component
-2. Create Product Details Screen
+2. Create Product Details Page
    1. fetch product from backend
    2. create 3 columns for image, info and action
 3. Create Loading and Message Component
@@ -98,15 +98,15 @@ $ npm start
 5. Complete Add To Cart
    1. check exist item in the cart
    2. check count in stock in backend
-6. Create Cart Screen
+6. Create Cart Page
    1. create 2 columns
    2. display items list
    3. create action column
-7. Complete Cart Screen
+7. Complete Cart Page
    1. click handler for inc/dec item
    2. click handler for remove item
    3. click handler for checkout
-8. Create Signin Screen
+8. Create Signin Page
    1. create sign in form
    2. add email and password
    3. add signin button
@@ -127,28 +127,28 @@ $ npm start
     1. create signin api
     2. npm install jsonwebtoken
     3. define generateToken
-13. Complete Signin Screen
+13. Complete Signin Page
     1. handle submit action
     2. save token in store and local storage
     3. show user name in header
-14. Create Shipping Screen
+14. Create Shipping Page
     1. create form inputs
     2. handle save shipping address
     3. add checkout wizard bar
-15. Create Sign Up Screen
+15. Create Sign Up Page
     1. create input forms
     2. handle submit
     3. create backend api
-16. Implement Select Payment Method Screen
+16. Implement Select Payment Method Page
     1. create input forms
     2. handle submit
-17. Create Place Order Screen
+17. Create Place Order Page
     1. show cart items, payment and address
     2. calculate order summary
 18. Implement Place Order Action
     1. handle place order action
     2. create order create api
-19. Create Order Screen
+19. Create Order Page
     1. create backend api for order/:id
     2. fetch order api in frontend
     3. show order information in 2 cloumns
@@ -157,16 +157,16 @@ $ npm start
     2. create api to return client id
     3. install react-paypal-js
     4. use PayPalScriptProvider in index.js
-    5. use usePayPalScriptReducer in Order Screen
+    5. use usePayPalScriptReducer in Order Page
     6. implement loadPaypalScript function
     7. render paypal button
     8. implement onApprove payment function
     9. create pay order api in backend
 21. Display Order History
-    1. create order screen
+    1. create order Page
     2. create order history api
     3. use api in the frontend
-22. Create Profile Screen
+22. Create Profile Page
     1. get user info from context
     2. show user information
     3. create user update api
@@ -182,7 +182,7 @@ $ npm start
 24. Add Sidebar and Search Box
     1. add sidebar
     2. add search box
-25. Create Search Screen
+25. Create Search Page
     1. show filters
     2. create api for searching products
     3. display results
@@ -190,7 +190,7 @@ $ npm start
     1. define protected route component
     2. define admin route component
     3. add menu for admin in header
-27. Create Dashboard Screen
+27. Create Dashboard Page
     1. create dashboard ui
     2. implement backend api
     3. connect ui to backend
@@ -219,7 +219,7 @@ $ npm start
     2. implement backend api
     3. handle on click
 34. List Orders
-    1. create order list screen
+    1. create order list Page
     2. implement backen api
     3. fetch and display orders
 35. Deliver Order
@@ -231,7 +231,7 @@ $ npm start
     2. handle click action
     3. implement backen api for delete
 37. List Users
-    1. create user list screen
+    1. create user list Page
     2. implement backen api
     3. fetch and display users
 38. Edit User
@@ -248,12 +248,12 @@ $ npm start
     1. create google map credentials
     2. update .env file with Google Api Key
     3. create api to send google api to frontend
-    4. create map screen
+    4. create map Page
     5. fetch google api
     6. getUserLocation
     7. install @react-google-maps/api
-    8. use it in shipping screen
-    9. apply map to the checkout screen
+    8. use it in shipping Page
+    9. apply map to the checkout Page
 41. Email order receipt by mailgun
     1. create mailgun account
     2. add and verify your domain to mailgun
@@ -267,8 +267,8 @@ $ npm start
     3. implement backend api for review
 43. Upload multiple Images
     1. add images to product model
-    2. get images in edit screen
-    3. show images in product screen
+    2. get images in edit Page
+    3. show images in product Page
 44. Upgrade To React 18
     1. install node-check-updates
     2. ncu -u

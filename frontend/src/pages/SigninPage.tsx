@@ -11,7 +11,7 @@ import { ApiError } from '../types/ApiError'
 import { useSigninMutation } from '../hooks/userHooks'
 import LoadingBox from '../components/LoadingBox'
 
-export default function SigninScreen() {
+export default function SigninPage() {
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')

@@ -12,7 +12,7 @@ import { useGetProductsQuery } from '../hooks/productHooks'
 import { getError } from '../utils'
 import { ApiError } from '../types/ApiError'
 
-function HomeScreen() {
+function HomePage() {
   const { data, isLoading, error } = useGetProductsQuery()
 
   return (
@@ -55,4 +55,4 @@ function HomeScreen() {
     </div>
   )
 }
-export default HomeScreen
+export default HomePage

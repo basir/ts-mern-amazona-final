@@ -26,7 +26,7 @@ import {
   usePayOrderMutation,
 } from '../hooks/orderHooks'
 
-export default function OrderScreen() {
+export default function OrderPage() {
   const { state } = useContext(Store)
   const { userInfo } = state
 

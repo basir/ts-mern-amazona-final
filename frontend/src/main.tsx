@@ -13,55 +13,55 @@ import {
   Route,
   RouterProvider,
 } from 'react-router-dom'
-import ProductScreen from './screens/ProductScreen'
-import CartScreen from './screens/CartScreen'
-import SearchScreen from './screens/SearchScreen'
-import SigninScreen from './screens/SigninScreen'
-import SignupScreen from './screens/SignupScreen'
+import ProductPage from './pages/ProductPage'
+import CartPage from './pages/CartPage'
+import SearchPage from './pages/SearchPage'
+import SigninPage from './pages/SigninPage'
+import SignupPage from './pages/SignupPage'
 import ProtectedRoute from './components/ProtectedRoute'
-import ProfileScreen from './screens/ProfileScreen'
-import PlaceOrderScreen from './screens/PlaceOrderScreen'
-import OrderScreen from './screens/OrderScreen'
-import OrderHistoryScreen from './screens/OrderHistoryScreen'
-import ShippingAddressScreen from './screens/ShippingAddressScreen'
-import PaymentMethodScreen from './screens/PaymentMethodScreen'
-import UserListScreen from './screens/UserListScreen'
-import ProductListScreen from './screens/ProductListScreen'
-import ProductEditScreen from './screens/ProductEditScreen'
-import UserEditScreen from './screens/UserEditScreen'
-import HomeScreen from './screens/HomeScreen'
-import OrderListScreen from './screens/OrderListScreen'
+import ProfilePage from './pages/ProfilePage'
+import PlaceOrderPage from './pages/PlaceOrderPage'
+import OrderPage from './pages/OrderPage'
+import OrderHistoryPage from './pages/OrderHistoryPage'
+import ShippingAddressPage from './pages/ShippingAddressPage'
+import PaymentMethodPage from './pages/PaymentMethodPage'
+import UserListPage from './pages/UserListPage'
+import ProductListPage from './pages/ProductListPage'
+import ProductEditPage from './pages/ProductEditPage'
+import UserEditPage from './pages/UserEditPage'
+import HomePage from './pages/HomePage'
+import OrderListPage from './pages/OrderListPage'
 import AdminRoute from './components/AdminRoute'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import DashboardScreen from './screens/DashboardScreen'
+import DashboardPage from './pages/DashboardPage'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
-      <Route index={true} path="/" element={<HomeScreen />} />
-      <Route path="/product/:slug" element={<ProductScreen />} />
-      <Route path="/cart" element={<CartScreen />} />
-      <Route path="/search" element={<SearchScreen />} />
-      <Route path="/signin" element={<SigninScreen />} />
-      <Route path="/signup" element={<SignupScreen />} />
+      <Route index={true} path="/" element={<HomePage />} />
+      <Route path="/product/:slug" element={<ProductPage />} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/search" element={<SearchPage />} />
+      <Route path="/signin" element={<SigninPage />} />
+      <Route path="/signup" element={<SignupPage />} />
 
       {/* Normal Users */}
       <Route path="" element={<ProtectedRoute />}>
-        <Route path="/orderhistory" element={<OrderHistoryScreen />} />
-        <Route path="/shipping" element={<ShippingAddressScreen />} />
-        <Route path="/payment" element={<PaymentMethodScreen />} />
-        <Route path="/placeorder" element={<PlaceOrderScreen />} />
-        <Route path="/profile" element={<ProfileScreen />} />
-        <Route path="/order/:id" element={<OrderScreen />} />
+        <Route path="/orderhistory" element={<OrderHistoryPage />} />
+        <Route path="/shipping" element={<ShippingAddressPage />} />
+        <Route path="/payment" element={<PaymentMethodPage />} />
+        <Route path="/placeorder" element={<PlaceOrderPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/order/:id" element={<OrderPage />} />
       </Route>
       {/* Admin Users */}
       <Route path="/admin" element={<AdminRoute />}>
-        <Route path="dashboard" element={<DashboardScreen />} />
-        <Route path="users" element={<UserListScreen />} />
-        <Route path="user/:id" element={<UserEditScreen />} />
-        <Route path="products" element={<ProductListScreen />} />
-        <Route path="product/:id" element={<ProductEditScreen />} />
-        <Route path="orders" element={<OrderListScreen />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="users" element={<UserListPage />} />
+        <Route path="user/:id" element={<UserEditPage />} />
+        <Route path="products" element={<ProductListPage />} />
+        <Route path="product/:id" element={<ProductEditPage />} />
+        <Route path="orders" element={<OrderListPage />} />
       </Route>
     </Route>
   )

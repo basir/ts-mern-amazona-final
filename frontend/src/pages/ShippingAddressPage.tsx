@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { Store } from '../Store'
 import CheckoutSteps from '../components/CheckoutSteps'
 
-export default function ShippingAddressScreen() {
+export default function ShippingAddressPage() {
   const navigate = useNavigate()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const {

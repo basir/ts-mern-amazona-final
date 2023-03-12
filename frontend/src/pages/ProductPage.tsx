@@ -22,7 +22,7 @@ import {
   useGetProductDetailsBySlugQuery,
 } from '../hooks/productHooks'
 
-function ProductScreen() {
+function ProductPage() {
   const reviewsRef = useRef<HTMLDivElement>(null)
 
   const [rating, setRating] = useState(0)
@@ -247,4 +247,4 @@ function ProductScreen() {
     <div>no product</div>
   )
 }
-export default ProductScreen
+export default ProductPage

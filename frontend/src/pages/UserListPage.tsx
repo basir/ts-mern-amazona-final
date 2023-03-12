@@ -9,7 +9,7 @@ import { ApiError } from '../types/ApiError'
 import { User } from '../types/User'
 import { getError } from '../utils'
 
-export default function UserListScreen() {
+export default function UserListPage() {
   const navigate = useNavigate()
 
   const { data: users, isLoading, error, refetch } = useGetUsersQuery()

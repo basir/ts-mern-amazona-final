@@ -14,7 +14,7 @@ import LoadingBox from '../components/LoadingBox'
 import { ApiError } from '../types/ApiError'
 import { useCreateOrderMutation } from '../hooks/orderHooks'
 
-export default function PlaceOrderScreen() {
+export default function PlaceOrderPage() {
   const navigate = useNavigate()
 
   const { state, dispatch: ctxDispatch } = useContext(Store)

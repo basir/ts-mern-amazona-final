@@ -8,7 +8,7 @@ import { useGetGoogleApiKeyQuery } from '../hooks/orderHooks'
 
 const defaultLocation = { lat: 45.516, lng: -73.56 }
 
-export default function MapScreen() {
+export default function MapPage() {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const navigate = useNavigate()

@@ -15,7 +15,7 @@ import {
   useGetAdminProdcutsQuery,
 } from '../hooks/productHooks'
 
-export default function ProductListScreen() {
+export default function ProductListPage() {
   const navigate = useNavigate()
   const { search } = useLocation()
   const sp = new URLSearchParams(search)

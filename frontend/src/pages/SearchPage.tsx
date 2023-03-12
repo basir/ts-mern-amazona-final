@@ -52,7 +52,7 @@ export const ratings = [
   },
 ]
 
-export default function SearchScreen() {
+export default function SearchPage() {
   const navigate = useNavigate()
   const { search } = useLocation()
   const sp = new URLSearchParams(search)

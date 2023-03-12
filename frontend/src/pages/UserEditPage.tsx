@@ -14,7 +14,7 @@ import {
   useUpdateUserMutation,
 } from '../hooks/userHooks'
 
-export default function UserEditScreen() {
+export default function UserEditPage() {
   const params = useParams()
   const { id: userId } = params
   const navigate = useNavigate()

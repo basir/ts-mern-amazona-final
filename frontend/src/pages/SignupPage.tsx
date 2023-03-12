@@ -10,7 +10,7 @@ import { getError } from '../utils'
 import { ApiError } from '../types/ApiError'
 import { useSignupMutation } from '../hooks/userHooks'
 
-export default function SignupScreen() {
+export default function SignupPage() {
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')

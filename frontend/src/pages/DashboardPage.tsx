@@ -8,7 +8,7 @@ import Card from 'react-bootstrap/Card'
 import { ApiError } from '../types/ApiError'
 import { useGetOrderSummaryQuery } from '../hooks/orderHooks'
 
-export default function DashboardScreen() {
+export default function DashboardPage() {
   const { data: summary, isLoading, error } = useGetOrderSummaryQuery()
 
   return (

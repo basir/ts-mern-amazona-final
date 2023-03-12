@@ -9,7 +9,7 @@ import { ApiError } from '../types/ApiError'
 import LoadingBox from '../components/LoadingBox'
 import { useUpdateProfileMutation } from '../hooks/userHooks'
 
-export default function ProfileScreen() {
+export default function ProfilePage() {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const [name, setName] = useState(userInfo!.name)

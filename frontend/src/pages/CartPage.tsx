@@ -12,7 +12,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CartItem } from '../types/Cart'
 import { toast } from 'react-toastify'
 
-export default function CartScreen() {
+export default function CartPage() {
   const navigate = useNavigate()
   const {
     state: {
