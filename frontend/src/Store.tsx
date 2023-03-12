@@ -2,9 +2,20 @@ import React from 'react'
 import { Cart, CartItem, ShippingAddress, Location } from './types/Cart'
 import { UserInfo } from './types/UserInfo'
 
-type AppState = { fullBox: boolean; userInfo?: UserInfo; cart: Cart }
+type AppState = {
+  mode: string
+  fullBox: boolean
+  userInfo?: UserInfo
+  cart: Cart
+}
 
 const initialState: AppState = {
+  mode: localStorage.getItem('mode')
+    ? localStorage.getItem('mode')!
+    : window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light',
   fullBox: false,
   userInfo: localStorage.getItem('userInfo')
     ? JSON.parse(localStorage.getItem('userInfo')!)
@@ -27,6 +38,7 @@ const initialState: AppState = {
   },
 }
 type Action =
+  | { type: 'SWITCH_MODE' }
   | { type: 'SET_FULLBOX_ON' }
   | { type: 'SET_FULLBOX_OFF' }
   | { type: 'CART_ADD_ITEM'; payload: CartItem }
@@ -34,14 +46,14 @@ type Action =
   | { type: 'CART_CLEAR' }
   | { type: 'USER_SIGNIN'; payload: UserInfo }
   | { type: 'USER_SIGNOUT' }
-  | { type: 'SET_FULLBOX_ON' }
-  | { type: 'SET_FULLBOX_ON' }
   | { type: 'SAVE_SHIPPING_ADDRESS'; payload: ShippingAddress }
   | { type: 'SAVE_PAYMENT_METHOD'; payload: string }
   | { type: 'SAVE_SHIPPING_ADDRESS_MAP_LOCATION'; payload: Location }
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'SWITCH_MODE':
+      return { ...state, mode: state.mode === 'dark' ? 'light' : 'dark' }
     case 'SET_FULLBOX_ON':
       return { ...state, fullBox: true }
     case 'SET_FULLBOX_OFF':

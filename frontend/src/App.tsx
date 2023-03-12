@@ -7,7 +7,7 @@ import Nav from 'react-bootstrap/Nav'
 import NavDropdown from 'react-bootstrap/NavDropdown'
 import Container from 'react-bootstrap/Container'
 import { LinkContainer } from 'react-router-bootstrap'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Store } from './Store'
 import Button from 'react-bootstrap/Button'
 import { getError } from './utils'
@@ -20,7 +20,14 @@ import MessageBox from './components/MessageBox'
 
 function App() {
   const { state, dispatch: ctxDispatch } = useContext(Store)
-  const { fullBox, cart, userInfo } = state
+  const { mode, fullBox, cart, userInfo } = state
+
+  useEffect(() => {
+    document.body.setAttribute('data-bs-theme', mode)
+  }, [mode])
+  const switchModeHandler = () => {
+    ctxDispatch({ type: 'SWITCH_MODE' })
+  }
 
   const signoutHandler = () => {
     ctxDispatch({ type: 'USER_SIGNOUT' })
@@ -47,10 +54,10 @@ function App() {
     >
       <ToastContainer position="bottom-center" limit={1} />
       <header>
-        <Navbar bg="dark" variant="dark" expand="lg">
+        <Navbar expand="lg">
           <Container>
             <Button
-              variant="dark"
+              variant={mode}
               onClick={() => setSidebarIsOpen(!sidebarIsOpen)}
             >
               <i className="fas fa-bars"></i>
@@ -62,7 +69,13 @@ function App() {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <SearchBox />
+
               <Nav className="me-auto  w-100  justify-content-end">
+                <Button variant={mode} onClick={switchModeHandler}>
+                  <i
+                    className={mode === 'light' ? 'fa fa-sun' : 'fa fa-moon'}
+                  ></i>
+                </Button>
                 <Link to="/cart" className="nav-link">
                   Cart
                   {cart.cartItems.length > 0 && (

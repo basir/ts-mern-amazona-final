@@ -39,10 +39,10 @@ main {
 .product-info {
   padding: 1rem;
 }
-.img-large {
+img.large {
   max-width: 100%;
 }
-.img-thumbnail {
+img.thumbnail {
   height: 80px;
 }
 .small-container {

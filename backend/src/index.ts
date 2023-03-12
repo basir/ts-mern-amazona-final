@@ -3,12 +3,12 @@ import path from 'path'
 import dotenv from 'dotenv'
 import express, { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
-import { userRouter } from './routers/userRoutes'
-import { orderRouter } from './routers/orderRoutes'
-import { productRouter } from './routers/productRoutes'
-import { uploadRouter } from './routers/uploadRoutes'
-import seedRouter from './routers/seedRoutes'
-import keyRouter from './routers/keyRoutes'
+import { userRouter } from './routers/userRouter'
+import { orderRouter } from './routers/orderRouter'
+import { productRouter } from './routers/productRouter'
+import { uploadRouter } from './routers/uploadRouter'
+import seedRouter from './routers/seedRouter'
+import keyRouter from './routers/keyRouter'
 
 dotenv.config()
 
