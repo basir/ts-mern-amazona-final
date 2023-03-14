@@ -10,7 +10,7 @@ import LoadingBox from '../components/LoadingBox'
 import { useUpdateProfileMutation } from '../hooks/userHooks'
 
 export default function ProfilePage() {
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { userInfo } = state
   const [name, setName] = useState(userInfo!.name)
   const [email, setEmail] = useState(userInfo!.email)
@@ -32,7 +32,7 @@ export default function ProfilePage() {
         password,
       })
 
-      ctxDispatch({ type: 'USER_SIGNIN', payload: data })
+      dispatch({ type: 'USER_SIGNIN', payload: data })
       localStorage.setItem('userInfo', JSON.stringify(data))
       toast.success('User updated successfully')
     } catch (err) {

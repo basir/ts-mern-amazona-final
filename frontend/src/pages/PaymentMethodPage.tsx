@@ -8,7 +8,7 @@ import { Store } from '../Store'
 
 export default function PaymentMethodPage() {
   const navigate = useNavigate()
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const {
     cart: { shippingAddress, paymentMethod },
   } = state
@@ -24,7 +24,7 @@ export default function PaymentMethodPage() {
   }, [shippingAddress, navigate])
   const submitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault()
-    ctxDispatch({ type: 'SAVE_PAYMENT_METHOD', payload: paymentMethodName })
+    dispatch({ type: 'SAVE_PAYMENT_METHOD', payload: paymentMethodName })
     localStorage.setItem('paymentMethod', paymentMethodName)
     navigate('/placeorder')
   }

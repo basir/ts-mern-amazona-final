@@ -19,18 +19,18 @@ import LoadingBox from './components/LoadingBox'
 import MessageBox from './components/MessageBox'
 
 function App() {
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { mode, fullBox, cart, userInfo } = state
 
   useEffect(() => {
     document.body.setAttribute('data-bs-theme', mode)
   }, [mode])
   const switchModeHandler = () => {
-    ctxDispatch({ type: 'SWITCH_MODE' })
+    dispatch({ type: 'SWITCH_MODE' })
   }
 
   const signoutHandler = () => {
-    ctxDispatch({ type: 'USER_SIGNOUT' })
+    dispatch({ type: 'USER_SIGNOUT' })
     localStorage.removeItem('userInfo')
     localStorage.removeItem('shippingAddress')
     localStorage.removeItem('paymentMethod')

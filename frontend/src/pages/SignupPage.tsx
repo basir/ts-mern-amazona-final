@@ -21,7 +21,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { userInfo } = state
 
   const { mutateAsync: signup, isLoading } = useSignupMutation()
@@ -38,7 +38,7 @@ export default function SignupPage() {
         email,
         password,
       })
-      ctxDispatch({ type: 'USER_SIGNIN', payload: data })
+      dispatch({ type: 'USER_SIGNIN', payload: data })
       localStorage.setItem('userInfo', JSON.stringify(data))
       navigate(redirect || '/')
     } catch (err) {

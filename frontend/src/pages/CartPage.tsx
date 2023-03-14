@@ -18,7 +18,7 @@ export default function CartPage() {
     state: {
       cart: { cartItems },
     },
-    dispatch: ctxDispatch,
+    dispatch,
   } = useContext(Store)
 
   const updateCartHandler = async (item: CartItem, quantity: number) => {
@@ -26,13 +26,13 @@ export default function CartPage() {
       toast.warn('Sorry. Product is out of stock')
       return
     }
-    ctxDispatch({
+    dispatch({
       type: 'CART_ADD_ITEM',
       payload: { ...item, quantity },
     })
   }
   const removeItemHandler = (item: CartItem) => {
-    ctxDispatch({ type: 'CART_REMOVE_ITEM', payload: item })
+    dispatch({ type: 'CART_REMOVE_ITEM', payload: item })
   }
 
   const checkoutHandler = () => {

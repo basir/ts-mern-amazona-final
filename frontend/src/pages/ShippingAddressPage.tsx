@@ -8,7 +8,7 @@ import CheckoutSteps from '../components/CheckoutSteps'
 
 export default function ShippingAddressPage() {
   const navigate = useNavigate()
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const {
     fullBox,
     userInfo,
@@ -26,7 +26,7 @@ export default function ShippingAddressPage() {
   const [country, setCountry] = useState(shippingAddress.country || '')
   const submitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault()
-    ctxDispatch({
+    dispatch({
       type: 'SAVE_SHIPPING_ADDRESS',
       payload: {
         fullName,
@@ -52,8 +52,8 @@ export default function ShippingAddressPage() {
   }
 
   useEffect(() => {
-    ctxDispatch({ type: 'SET_FULLBOX_OFF' })
-  }, [ctxDispatch, fullBox])
+    dispatch({ type: 'SET_FULLBOX_OFF' })
+  }, [dispatch, fullBox])
 
   return (
     <div>

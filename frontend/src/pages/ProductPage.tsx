@@ -43,7 +43,7 @@ function ProductPage() {
   const { mutateAsync: createReview, isLoading: loadingCreateReview } =
     useCreateReviewMutation()
 
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { cart, userInfo } = state
 
   const addToCartHandler = async () => {
@@ -53,7 +53,7 @@ function ProductPage() {
       toast.warn('Sorry. Product is out of stock')
       return
     }
-    ctxDispatch({
+    dispatch({
       type: 'CART_ADD_ITEM',
       payload: { ...convertProductToCartItem(product!), quantity },
     })

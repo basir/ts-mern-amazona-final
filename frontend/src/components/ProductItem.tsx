@@ -11,7 +11,7 @@ import { convertProductToCartItem } from '../utils'
 import { toast } from 'react-toastify'
 
 function ProductItem({ product }: { product: Product }) {
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const {
     cart: { cartItems },
   } = state
@@ -23,7 +23,7 @@ function ProductItem({ product }: { product: Product }) {
       toast.warn('Sorry. Product is out of stock')
       return
     }
-    ctxDispatch({
+    dispatch({
       type: 'CART_ADD_ITEM',
       payload: { ...item, quantity },
     })

@@ -9,7 +9,7 @@ import { useGetGoogleApiKeyQuery } from '../hooks/orderHooks'
 const defaultLocation = { lat: 45.516, lng: -73.56 }
 
 export default function MapPage() {
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { userInfo } = state
   const navigate = useNavigate()
   const [googleApiKey, setGoogleApiKey] = useState('')
@@ -42,11 +42,11 @@ export default function MapPage() {
   useEffect(() => {
     if (googleConfig) {
       setGoogleApiKey(googleConfig.key)
-      ctxDispatch({
+      dispatch({
         type: 'SET_FULLBOX_ON',
       })
     }
-  }, [ctxDispatch, googleConfig])
+  }, [dispatch, googleConfig])
 
   const onLoad = (map: any) => {
     mapRef.current = map
@@ -65,7 +65,7 @@ export default function MapPage() {
   }
 
   const onConfirm = () => {
-    ctxDispatch({
+    dispatch({
       type: 'SAVE_SHIPPING_ADDRESS_MAP_LOCATION',
       payload: {
         lat: location.lat,
