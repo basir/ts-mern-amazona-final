@@ -7,9 +7,6 @@
   -webkit-text-size-adjust: 100%;
 }
 
-.site-container {
-  min-height: 100vh;
-}
 main {
   flex: 1;
 }
@@ -59,27 +56,8 @@ img.thumbnail {
 }
 
 /* sidebar */
-.navbar-brand {
-  font-weight: bold;
-}
-.side-navbar {
-  width: 240px;
-  height: 100%;
-  position: absolute;
-  left: -300px;
-  background-color: #100901;
-  transition: 0.5s;
-}
 
-.site-container {
-  transition: 0.4s;
-}
-.active-cont {
-  margin-left: 240px;
-}
-.active-nav {
-  left: 0;
-}
+/* Common */
 .text-bold {
   font-weight: bold;
 }
@@ -125,4 +103,87 @@ img.thumbnail {
 }
 button.thumbnail {
   padding: 0;
+}
+
+/* Header */
+
+.site-container {
+  min-height: 100vh;
+  transition: 0.4s;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.8rem;
+}
+
+a.header-link,
+.header-link > a {
+  border: 1px rgb(33, 37, 41) solid;
+  border-radius: 2px;
+  color: white !important;
+  font-weight: bold;
+}
+
+a.header-link:hover,
+.header-link > a:hover {
+  color: white;
+  border: 1px white solid;
+}
+.header .dropdown-menu {
+  color: black !important;
+  background-color: white;
+}
+.header .dropdown-item {
+  color: black !important;
+  background-color: white;
+}
+.header .dropdown-item a:hover {
+  border: 1px rgb(33, 37, 41) solid;
+}
+.tags {
+  background-color: #232f3e;
+}
+.cart-badge {
+  position: absolute;
+  color: #f08000;
+  font-weight: bold;
+  margin-left: 16px;
+  margin-top: -3px;
+}
+/* Sidebar */
+.side-navbar-backdrop {
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+}
+.side-navbar {
+  width: 340px;
+  height: 100%;
+  position: absolute;
+  left: -350px;
+  background-color: #f5f5f5;
+  transition: 0.5s;
+  z-index: 2;
+}
+.active-cont {
+  margin-left: 340px;
+}
+.active-nav {
+  left: 0;
+}
+
+.side-navbar-user {
+  background-color: #232f3e !important;
+  color: white;
+  font-weight: bold;
+}
+
+button.side-navbar-user:hover {
+  color: white;
 }

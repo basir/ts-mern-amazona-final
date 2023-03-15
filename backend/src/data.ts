@@ -1,5 +1,5 @@
 import { Product } from './models/productModel'
-import { User } from './models/user.model'
+import { User } from './models/userModel'
 import bcrypt from 'bcryptjs'
 
 export const products: Product[] = [

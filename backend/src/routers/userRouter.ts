@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'
 import asyncHandler from 'express-async-handler'
-import { User, UserModel } from '../models/user.model'
+import { User, UserModel } from '../models/userModel'
 import bcrypt from 'bcryptjs'
 import { generateToken, isAdmin, isAuth } from '../utils'
 
