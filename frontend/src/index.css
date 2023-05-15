@@ -141,7 +141,7 @@ a.header-link:hover,
 .header .dropdown-item a:hover {
   border: 1px rgb(33, 37, 41) solid;
 }
-.tags {
+.sub-header {
   background-color: #232f3e;
 }
 .cart-badge {

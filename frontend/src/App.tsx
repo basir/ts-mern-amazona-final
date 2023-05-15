@@ -125,11 +125,11 @@ function App() {
                   Orders
                 </Link>
                 <Link to="/cart" className="nav-link header-link p-0">
-                  {cart.cartItems.length > 0 && (
+                  {
                     <span className="cart-badge">
                       {cart.cartItems.reduce((a, c) => a + c.quantity, 0)}
                     </span>
-                  )}
+                  }
 
                   <svg
                     fill="#ffffff"
@@ -145,7 +145,7 @@ function App() {
               </Nav>
             </Navbar.Collapse>
           </div>
-          <div className="tags">
+          <div className="sub-header">
             <div className="d-flex">
               <Link
                 to="#"
