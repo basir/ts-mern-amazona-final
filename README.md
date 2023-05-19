@@ -9,7 +9,7 @@ Welcome to my React and Node tutorial to build a fully-functional e-commerce web
 ## Push
 
 git add . && git commit -m "m" && git push aws
-1
+12
 
 Watch it on Youtube:
 [https://www.youtube.com/watch?v=CDtPMR5y0QU](https://www.youtube.com/watch?v=CDtPMR5y0QU)
