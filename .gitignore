@@ -25,3 +25,4 @@ yarn-error.log*
 uploads/*.jpeg
 uploads/*.jpg
 uploads/*.png
+package-lock.json

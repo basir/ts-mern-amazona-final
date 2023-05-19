@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import {
   PayPalButtons,
   usePayPalScriptReducer,
@@ -20,15 +20,23 @@ import { getError } from '../utils'
 import { toast } from 'react-toastify'
 import { ApiError } from '../types/ApiError'
 import {
+  useCreateStripeCheckoutSessionMutation,
+  useCreateStripePaymentIntentMutation,
   useDeliverOrderMutation,
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
+  useGetStripePublishableKeyQuery,
   usePayOrderMutation,
 } from '../hooks/orderHooks'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, PaymentElement } from '@stripe/react-stripe-js'
 
 export default function OrderPage() {
   const { state } = useContext(Store)
-  const { userInfo } = state
+  const {
+    userInfo,
+    cart: { paymentMethod },
+  } = state
 
   const params = useParams()
   const { id: orderId } = params
@@ -42,6 +50,7 @@ export default function OrderPage() {
 
   const { mutateAsync: deliverOrder, isLoading: loadingDeliver } =
     useDeliverOrderMutation()
+
   async function deliverOrderHandler() {
     try {
       await deliverOrder(orderId!)
@@ -90,26 +99,60 @@ export default function OrderPage() {
     },
   }
   const [{ isPending, isRejected }, paypalDispatch] = usePayPalScriptReducer()
-  const { data: paypalConfig } = useGetPaypalClientIdQuery()
-
+  const { refetch: fetchPayPalClientId } = useGetPaypalClientIdQuery()
+  const { refetch: fetchStripePublishableKey } =
+    useGetStripePublishableKeyQuery()
+  const { mutateAsync: createIntent } = useCreateStripePaymentIntentMutation()
+  // const { mutateAsync: createSession } =
+  //   useCreateStripeCheckoutSessionMutation()
+  const [stripePromise, setStripePromise] = useState(null)
+  const [stripeOptions, setStripeOptions] = useState(null)
   useEffect(() => {
-    if (paypalConfig && paypalConfig.clientId) {
-      const loadPaypalScript = async () => {
-        paypalDispatch({
-          type: 'resetOptions',
-          value: {
-            'client-id': paypalConfig!.clientId,
-            currency: 'USD',
-          },
-        })
-        paypalDispatch({
-          type: 'setLoadingStatus',
-          value: SCRIPT_LOADING_STATE.PENDING,
-        })
+    const loadScript = async () => {
+      if (order) {
+        if (paymentMethod === 'PayPal') {
+          const { data } = await fetchPayPalClientId()
+          paypalDispatch({
+            type: 'resetOptions',
+            value: {
+              'client-id': data!.clientId,
+              currency: 'USD',
+            },
+          })
+          paypalDispatch({
+            type: 'setLoadingStatus',
+            value: SCRIPT_LOADING_STATE.PENDING,
+          })
+        } else if (paymentMethod === 'Stripe') {
+          console.log('stripe')
+          const { data } = await fetchStripePublishableKey()
+          const paymentIntent = await createIntent(orderId!)
+          setStripeOptions({ client_secret: paymentIntent.client_secret })
+          setStripePromise(loadStripe(data!.key))
+          // const session = createSession(orderId!)
+          // console.log(session)
+        }
       }
-      loadPaypalScript()
     }
-  }, [paypalConfig])
+    loadScript()
+
+    // if (paypalConfig && paypalConfig.clientId) {
+    //   const loadPaypalScript = async () => {
+    //     paypalDispatch({
+    //       type: 'resetOptions',
+    //       value: {
+    //         'client-id': paypalConfig!.clientId,
+    //         currency: 'USD',
+    //       },
+    //     })
+    //     paypalDispatch({
+    //       type: 'setLoadingStatus',
+    //       value: SCRIPT_LOADING_STATE.PENDING,
+    //     })
+    //   }
+    //   loadPaypalScript()
+    // }
+  }, [order])
   const { mutateAsync: payOrder, isLoading: loadingPay } = usePayOrderMutation()
 
   return isLoading ? (
@@ -226,24 +269,38 @@ export default function OrderPage() {
                       <strong>${order.totalPrice.toFixed(2)}</strong>
                     </Col>
                   </Row>
-                </ListGroup.Item>
+                </ListGroup.Item>{' '}
+                {loadingPay && <LoadingBox></LoadingBox>}
                 {!order.isPaid && (
                   <ListGroup.Item>
-                    {isPending ? (
-                      <LoadingBox />
-                    ) : isRejected ? (
-                      <MessageBox variant="danger">
-                        Error in connecting to PayPal
-                      </MessageBox>
+                    {paymentMethod === 'PayPal' ? (
+                      isPending ? (
+                        <LoadingBox />
+                      ) : isRejected ? (
+                        <MessageBox variant="danger">
+                          Error in connecting to PayPal
+                        </MessageBox>
+                      ) : (
+                        <div>
+                          <PayPalButtons
+                            {...paypalbuttonTransactionProps}
+                          ></PayPalButtons>
+                          <Button onClick={testPayHandler}>Test Pay</Button>
+                        </div>
+                      )
                     ) : (
                       <div>
-                        <PayPalButtons
-                          {...paypalbuttonTransactionProps}
-                        ></PayPalButtons>
-                        <Button onClick={testPayHandler}>Test Pay</Button>
+                        <Elements
+                          stripe={stripePromise}
+                          options={stripeOptions}
+                        >
+                          <form>
+                            <PaymentElement />
+                            <button>Submit</button>
+                          </form>
+                        </Elements>
                       </div>
                     )}
-                    {loadingPay && <LoadingBox></LoadingBox>}
                   </ListGroup.Item>
                 )}
                 {userInfo!.isAdmin && order.isPaid && !order.isDelivered && (

@@ -9,4 +9,9 @@ keyRouter.get('/paypal', (req, res) => {
 keyRouter.get('/google', (req, res) => {
   res.send({ key: process.env.GOOGLE_API_KEY || 'nokey' })
 })
+
+keyRouter.get('/stripe', (req, res) => {
+  res.json({ key: process.env.STRIPE_PUBLISHABLE_KEY })
+})
+
 export default keyRouter

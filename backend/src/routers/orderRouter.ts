@@ -4,6 +4,7 @@ import { UserModel } from '../models/userModel'
 import { isAdmin, isAuth } from '../utils'
 import { OrderModel } from '../models/orderModel'
 import { Product, ProductModel } from '../models/productModel'
+import Stripe from 'stripe'
 
 export const orderRouter = express.Router()
 
@@ -104,6 +105,61 @@ orderRouter.get(
       res.send(order)
     } else {
       res.status(404).send({ message: 'Order Not Found' })
+    }
+  })
+)
+
+orderRouter.post(
+  '/:id/stripe-payment-intent',
+  asyncHandler(async (req, res) => {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+        apiVersion: '2022-11-15',
+      })
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 20 * 100,
+        currency: 'cad',
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      })
+      res.json({ client_secret: paymentIntent.client_secret })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error })
+    }
+  })
+)
+
+orderRouter.post(
+  '/:id/stripe-checkout-session',
+  asyncHandler(async (req, res) => {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        apiVersion: '2022-11-15',
+      })
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'test',
+              },
+              unit_amount: 2000,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: 'http://localhost:3000/success',
+        cancel_url: 'http://localhost:3000/cancel',
+      })
+      res.json({ id: session.id })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error })
     }
   })
 )

@@ -32,8 +32,35 @@ export const useGetOrderHistoryQuery = () =>
 export const useGetPaypalClientIdQuery = () =>
   useQuery({
     queryKey: ['paypal-clientId'],
+    enabled: false,
     queryFn: async () =>
       (await apiClient.get<{ clientId: string }>(`/api/keys/paypal`)).data,
+  })
+
+export const useGetStripePublishableKeyQuery = () =>
+  useQuery({
+    queryKey: ['stripe-publishable-key'],
+    enabled: false,
+    queryFn: async () =>
+      (await apiClient.get<{ key: string }>(`/api/keys/stripe`)).data,
+  })
+export const useCreateStripePaymentIntentMutation = () =>
+  useMutation({
+    mutationFn: async (orderId: string) =>
+      (
+        await apiClient.post<{ clientSecret: string }>(
+          `/api/orders/${orderId}/stripe-payment-intent`
+        )
+      ).data,
+  })
+export const useCreateStripeCheckoutSessionMutation = () =>
+  useMutation({
+    mutationFn: async (orderId: string) =>
+      (
+        await apiClient.post<{ sessionId: string }>(
+          `/api/orders/${orderId}/stripe-checkout-session`
+        )
+      ).data,
   })
 
 export const useGetGoogleApiKeyQuery = () =>
