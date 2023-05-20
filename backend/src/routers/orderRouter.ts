@@ -113,52 +113,21 @@ orderRouter.post(
   '/:id/stripe-payment-intent',
   asyncHandler(async (req, res) => {
     try {
+      const order = await OrderModel.findById(req.params.id)
+      if (!order) {
+        res.status(404).send({ message: 'Order Not Found' })
+        return
+      }
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
         apiVersion: '2022-11-15',
       })
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 20 * 100,
-        currency: 'cad',
-        automatic_payment_methods: {
-          enabled: true,
-        },
-      })
-      res.json({ client_secret: paymentIntent.client_secret })
-    } catch (error) {
-      console.log(error)
-      res.status(500).json({ error })
-    }
-  })
-)
-
-orderRouter.post(
-  '/:id/stripe-checkout-session',
-  asyncHandler(async (req, res) => {
-    try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: '2022-11-15',
-      })
-      const session = await stripe.checkout.sessions.create({
+        amount: order.totalPrice * 100,
+        currency: 'usd',
         payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: 'test',
-              },
-              unit_amount: 2000,
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: 'http://localhost:3000/success',
-        cancel_url: 'http://localhost:3000/cancel',
       })
-      res.json({ id: session.id })
+      res.json({ clientSecret: paymentIntent.client_secret })
     } catch (error) {
-      console.log(error)
       res.status(500).json({ error })
     }
   })
@@ -173,12 +142,21 @@ orderRouter.put(
     if (order) {
       order.isPaid = true
       order.paidAt = new Date(Date.now())
-      order.paymentResult = {
-        paymentId: req.body.id,
-        status: req.body.status,
-        update_time: req.body.update_time,
-        email_address: req.body.email_address,
-      }
+      order.paymentResult =
+        req.body.object === 'payment_intent' // stripe
+          ? {
+              paymentId: req.body.id,
+              status: req.body.status,
+              update_time: req.body.created,
+              email_address: req.body.receipt_email,
+            }
+          : {
+              // paypal
+              paymentId: req.body.id,
+              status: req.body.status,
+              update_time: req.body.update_time,
+              email_address: req.body.email_address,
+            }
       const updatedOrder = await order.save()
 
       res.send(updatedOrder)

@@ -20,7 +20,6 @@ import { getError } from '../utils'
 import { toast } from 'react-toastify'
 import { ApiError } from '../types/ApiError'
 import {
-  useCreateStripeCheckoutSessionMutation,
   useCreateStripePaymentIntentMutation,
   useDeliverOrderMutation,
   useGetOrderDetailsQuery,
@@ -28,8 +27,9 @@ import {
   useGetStripePublishableKeyQuery,
   usePayOrderMutation,
 } from '../hooks/orderHooks'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement } from '@stripe/react-stripe-js'
+import { Stripe, StripeElementsOptions, loadStripe } from '@stripe/stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
+import StripeCheckoutForm from '../components/StripeCheckoutForm'
 
 export default function OrderPage() {
   const { state } = useContext(Store)
@@ -61,8 +61,8 @@ export default function OrderPage() {
     }
   }
 
-  const testPayHandler = () => {
-    payOrder({ orderId: orderId! })
+  const testPayHandler = async () => {
+    await payOrder({ orderId: orderId! })
     refetch()
     toast.success('Order is paid')
   }
@@ -103,10 +103,11 @@ export default function OrderPage() {
   const { refetch: fetchStripePublishableKey } =
     useGetStripePublishableKeyQuery()
   const { mutateAsync: createIntent } = useCreateStripePaymentIntentMutation()
-  // const { mutateAsync: createSession } =
-  //   useCreateStripeCheckoutSessionMutation()
-  const [stripePromise, setStripePromise] = useState(null)
-  const [stripeOptions, setStripeOptions] = useState(null)
+  const [stripePromise, setStripePromise] =
+    useState<PromiseLike<Stripe | null> | null>(null)
+  const [stripeOptions, setStripeOptions] = useState<StripeElementsOptions>({
+    clientSecret: '',
+  })
   useEffect(() => {
     const loadScript = async () => {
       if (order) {
@@ -124,34 +125,14 @@ export default function OrderPage() {
             value: SCRIPT_LOADING_STATE.PENDING,
           })
         } else if (paymentMethod === 'Stripe') {
-          console.log('stripe')
-          const { data } = await fetchStripePublishableKey()
           const paymentIntent = await createIntent(orderId!)
-          setStripeOptions({ client_secret: paymentIntent.client_secret })
+          setStripeOptions({ clientSecret: paymentIntent.clientSecret })
+          const { data } = await fetchStripePublishableKey()
           setStripePromise(loadStripe(data!.key))
-          // const session = createSession(orderId!)
-          // console.log(session)
         }
       }
     }
     loadScript()
-
-    // if (paypalConfig && paypalConfig.clientId) {
-    //   const loadPaypalScript = async () => {
-    //     paypalDispatch({
-    //       type: 'resetOptions',
-    //       value: {
-    //         'client-id': paypalConfig!.clientId,
-    //         currency: 'USD',
-    //       },
-    //     })
-    //     paypalDispatch({
-    //       type: 'setLoadingStatus',
-    //       value: SCRIPT_LOADING_STATE.PENDING,
-    //     })
-    //   }
-    //   loadPaypalScript()
-    // }
   }, [order])
   const { mutateAsync: payOrder, isLoading: loadingPay } = usePayOrderMutation()
 
@@ -291,13 +272,15 @@ export default function OrderPage() {
                     ) : (
                       <div>
                         <Elements
-                          stripe={stripePromise}
+                          stripe={stripePromise!}
                           options={stripeOptions}
                         >
-                          <form>
-                            <PaymentElement />
-                            <button>Submit</button>
-                          </form>
+                          <StripeCheckoutForm
+                            options={stripeOptions}
+                            refetch={refetch}
+                            orderId={orderId!}
+                            payOrder={payOrder}
+                          />
                         </Elements>
                       </div>
                     )}

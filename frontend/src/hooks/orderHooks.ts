@@ -53,15 +53,6 @@ export const useCreateStripePaymentIntentMutation = () =>
         )
       ).data,
   })
-export const useCreateStripeCheckoutSessionMutation = () =>
-  useMutation({
-    mutationFn: async (orderId: string) =>
-      (
-        await apiClient.post<{ sessionId: string }>(
-          `/api/orders/${orderId}/stripe-checkout-session`
-        )
-      ).data,
-  })
 
 export const useGetGoogleApiKeyQuery = () =>
   useQuery({
